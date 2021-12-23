@@ -42,17 +42,18 @@ public struct RSA {
     // MARK: - API
     
     public static func decrypt(string: String,
-                        with bundle: CryptoBundle) -> String? {
+                               with bundle: CryptoBundle) -> String? {
         return manage(string, for: .decrypt, using: bundle)
     }
     
     
     public static func encrypt(string: String,
-                        with bundle: CryptoBundle) -> String? {
+                               with bundle: CryptoBundle) -> String? {
         return manage(string, for: .encrypt, using: bundle)
     }
     
-    public static func decrypt(string: String, with pair: KeyPair) -> (KeyPair?, String?) {
+    public static func decrypt(string: String,
+                               with pair: KeyPair) -> (KeyPair?, String?) {
         return manage(string, pair: pair, for: .decrypt)
     }
     
@@ -149,7 +150,7 @@ private extension RSA {
 // MARK: - Utils
 extension RSA {
     
-    static func extractCert(from p12Data: Data, password: String) -> CryptoBundle? {
+    public static func extractCert(from p12Data: Data, password: String) -> CryptoBundle? {
         var items: CFArray?
         let certOptions: CFDictionary = [kSecImportExportPassphrase as String: password] as CFDictionary
         
