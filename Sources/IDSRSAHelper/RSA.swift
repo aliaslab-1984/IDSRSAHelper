@@ -42,23 +42,27 @@ public struct RSA {
     // MARK: - API
     
     public static func decrypt(string: String,
+                               preferredKey: CertificateKey = .privateKey,
                                with bundle: CryptoBundle) -> String? {
         return manage(string, for: .decrypt, using: bundle)
     }
     
     
     public static func encrypt(string: String,
+                               preferredKey: CertificateKey = .publicKey,
                                with bundle: CryptoBundle) -> String? {
         return manage(string, for: .encrypt, using: bundle)
     }
     
     public static func decrypt(string: String,
+                               preferredKey: CertificateKey = .privateKey,
                                with pair: KeyPair) -> (KeyPair?, String?) {
-        return manage(string, pair: pair, for: .decrypt)
+        return manage(string, pair: pair, preferredKey: preferredKey, for: .decrypt)
     }
     
-    public static func encrypt(string: String) -> (KeyPair?, String?) {
-        return manage(string, for: .encrypt)
+    public static func encrypt(string: String,
+                               preferredKey: CertificateKey = .publicKey) -> (KeyPair?, String?) {
+        return manage(string, preferredKey: preferredKey, for: .encrypt)
     }
     
 }
@@ -68,6 +72,7 @@ private extension RSA {
     
     static func manage(_ value: String,
                        pair: KeyPair? = nil,
+                       preferredKey: CertificateKey,
                        for cryptoAction: CryptoAction) -> (KeyPair?, String?) {
         
         if cryptoAction == .encrypt {
