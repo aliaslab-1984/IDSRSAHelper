@@ -44,14 +44,14 @@ public struct RSA {
     public static func decrypt(string: String,
                                preferredKey: CertificateKey = .privateKey,
                                with bundle: CryptoBundle) -> String? {
-        return manage(string, for: .decrypt, using: bundle)
+        return manage(string, for: .decrypt, preferredKey: preferredKey, using: bundle)
     }
     
     
     public static func encrypt(string: String,
                                preferredKey: CertificateKey = .publicKey,
                                with bundle: CryptoBundle) -> String? {
-        return manage(string, for: .encrypt, using: bundle)
+        return manage(string, for: .encrypt, preferredKey: preferredKey, using: bundle)
     }
     
     public static func decrypt(string: String,
@@ -96,6 +96,7 @@ private extension RSA {
     
     static func manage(_ value: String,
                        for cryptoAction: CryptoAction,
+                       preferredKey: CertificateKey,
                        using bundle: CryptoBundle) -> String? {
         var trust: SecTrust?
 
@@ -106,7 +107,7 @@ private extension RSA {
         guard status == errSecSuccess else { return nil }
 
         let key: SecKey
-        switch cryptoAction.keyToUse {
+        switch preferredKey {
         case .privateKey:
             var privateKey: SecKey?
             SecIdentityCopyPrivateKey(bundle.identity, &privateKey)
