@@ -1,5 +1,5 @@
 import XCTest
-@testable import IDSCertificateHelper
+@testable import IDSRSAHelper
 
 final class IDSCertificateHelperTests: XCTestCase {
     

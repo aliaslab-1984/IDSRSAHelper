@@ -20,9 +20,9 @@ public struct RSA {
         var identity: SecIdentity
     }
     
-    public enum CertificateKey {
-        case privateKey
-        case publicKey
+    public enum CertificateKey: Int, Hashable {
+        case privateKey = 0
+        case publicKey = 1
     }
     
     enum CryptoAction {
