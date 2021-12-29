@@ -151,7 +151,7 @@ private extension RSA {
             key = secKey
         case .publicKey:
             // Retrieve the SecKey using the trust hence generated
-            if #available(iOS 14.0, *) {
+            if #available(iOS 14.0, *), #available(macOS 11.0, *) {
                 guard let secKey = SecTrustCopyKey(trust!) else { return nil }
                 key = secKey
             } else {
