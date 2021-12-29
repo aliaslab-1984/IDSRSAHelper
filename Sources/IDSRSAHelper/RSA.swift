@@ -41,28 +41,64 @@ public struct RSA {
     
     // MARK: - API
     
+    public static func decrypt(data: Data,
+                               preferredKey: CertificateKey = .privateKey,
+                               with bundle: CryptoBundle) -> String? {
+        return manage(data, for: .decrypt, preferredKey: preferredKey, using: bundle)
+    }
+    
+    
+    public static func encrypt(data: Data,
+                               preferredKey: CertificateKey = .publicKey,
+                               with bundle: CryptoBundle) -> String? {
+        return manage(data, for: .encrypt, preferredKey: preferredKey, using: bundle)
+    }
+    
+    public static func decrypt(data: Data,
+                               preferredKey: CertificateKey = .privateKey,
+                               with pair: KeyPair) -> (KeyPair?, String?) {
+        return manage(data, pair: pair, preferredKey: preferredKey, for: .decrypt)
+    }
+    
+    public static func encrypt(data: Data,
+                               preferredKey: CertificateKey = .publicKey) -> (KeyPair?, String?) {
+        return manage(data, preferredKey: preferredKey, for: .encrypt)
+    }
+    
     public static func decrypt(string: String,
                                preferredKey: CertificateKey = .privateKey,
                                with bundle: CryptoBundle) -> String? {
-        return manage(string, for: .decrypt, preferredKey: preferredKey, using: bundle)
+        guard let data = Data(base64Encoded: string) else {
+            return nil
+        }
+        return manage(data, for: .decrypt, preferredKey: preferredKey, using: bundle)
     }
     
     
     public static func encrypt(string: String,
                                preferredKey: CertificateKey = .publicKey,
                                with bundle: CryptoBundle) -> String? {
-        return manage(string, for: .encrypt, preferredKey: preferredKey, using: bundle)
+        guard let data = string.data(using: .utf8) else {
+            return nil
+        }
+        return manage(data, for: .encrypt, preferredKey: preferredKey, using: bundle)
     }
     
     public static func decrypt(string: String,
                                preferredKey: CertificateKey = .privateKey,
                                with pair: KeyPair) -> (KeyPair?, String?) {
-        return manage(string, pair: pair, preferredKey: preferredKey, for: .decrypt)
+        guard let data = Data(base64Encoded: string) else {
+            return (nil, nil)
+        }
+        return manage(data, pair: pair, preferredKey: preferredKey, for: .decrypt)
     }
     
     public static func encrypt(string: String,
                                preferredKey: CertificateKey = .publicKey) -> (KeyPair?, String?) {
-        return manage(string, preferredKey: preferredKey, for: .encrypt)
+        guard let data = string.data(using: .utf8) else {
+            return (nil, nil)
+        }
+        return manage(data, preferredKey: preferredKey, for: .encrypt)
     }
     
 }
@@ -70,7 +106,7 @@ public struct RSA {
 // MARK: -Actual decryption
 private extension RSA {
     
-    static func manage(_ value: String,
+    static func manage(_ value: Data,
                        pair: KeyPair? = nil,
                        preferredKey: CertificateKey,
                        for cryptoAction: CryptoAction) -> (KeyPair?, String?) {
@@ -94,7 +130,7 @@ private extension RSA {
         }
     }
     
-    static func manage(_ value: String,
+    static func manage(_ value: Data,
                        for cryptoAction: CryptoAction,
                        preferredKey: CertificateKey,
                        using bundle: CryptoBundle) -> String? {
@@ -131,20 +167,15 @@ private extension RSA {
         }
     }
     
-    static func newEncrypt(_ value: String, encryptionKey: SecKey) -> String? {
-        guard let coreFData = value.cfData else {
-            return nil
-        }
+    static func newEncrypt(_ value: Data, encryptionKey: SecKey) -> String? {
+        let coreFData = value as CFData
         let encrypt = SecKeyCreateEncryptedData(encryptionKey, preferredAlgorithm, coreFData, nil) as Data?
 
         return encrypt?.base64EncodedString()
     }
     
-    static func newDecrypt(_ value: String, decryptionKey: SecKey) -> String? {
-        let data = Data(base64Encoded: value)
-        guard let coreFData = data as CFData? else {
-            return nil
-        }
+    static func newDecrypt(_ data: Data, decryptionKey: SecKey) -> String? {
+        let coreFData = data as CFData
         
         guard let decrypt = SecKeyCreateDecryptedData(decryptionKey, preferredAlgorithm, coreFData, nil) as Data? else {
             return nil
