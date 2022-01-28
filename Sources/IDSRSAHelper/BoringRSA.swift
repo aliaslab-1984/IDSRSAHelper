@@ -17,6 +17,7 @@ public final class BoringRSA {
     
     public enum BoringError: Error {
         case invalidURL
+        case invalidString
         case openSSLError(code: UInt32, message: String?)
         
         static func lastOpenSSLError() -> BoringError {
@@ -48,6 +49,16 @@ public final class BoringRSA {
     // MARK: API
     
     public func privateKey(at url: URL?,
+                           perform cryptoAction: CryptoAction,
+                           for string: String) throws -> Data {
+        guard let data = Data(base64Encoded: string) else {
+            throw BoringError.invalidString
+        }
+        
+        return try privateKey(at: url, perform: cryptoAction, for: data)
+    }
+    
+    public func privateKey(at url: URL?,
                            perform cryptAction: CryptoAction,
                            for data: Data) throws -> Data {
         
@@ -63,6 +74,16 @@ public final class BoringRSA {
         case .decrypt:
             return try privateDecrypt(privateKey, data: data)
         }
+    }
+    
+    public func publicKey(at url: URL?,
+                          perform cryptoAction: CryptoAction,
+                          for string: String) throws -> Data {
+        guard let data = Data(base64Encoded: string) else {
+            throw BoringError.invalidString
+        }
+        
+        return try publicKey(at: url, perform: cryptoAction, for: data)
     }
     
     public func publicKey(at url: URL?,
