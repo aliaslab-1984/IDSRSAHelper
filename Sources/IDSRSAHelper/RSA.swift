@@ -8,73 +8,14 @@
 import Foundation
 import Security
 
-public struct RSA {
+public struct SecurityRSA {
     
     public static var preferredAlgorithm: SecKeyAlgorithm = .rsaEncryptionPKCS1
     public static var bundle: String = {
         return Bundle.main.bundleIdentifier ?? "com.certificatehelper"
     }()
     
-    public struct CryptoBundle {
-        var certificate: SecCertificate
-        var identity: SecIdentity
-        
-        /// Given a p12 certificate and the corresponding password, it tries initialize the CryptoBundle instance.
-        /// - p12Data: The data that represents the certificate.
-        /// - password: The password to unlock the certificate.
-        public init?(from p12Data: Data, password: String) {
-            var items: CFArray?
-            let certOptions: CFDictionary = [kSecImportExportPassphrase as String: password] as CFDictionary
-            
-            // import certificate to read its entries
-            let securityError = SecPKCS12Import(p12Data as CFData, certOptions, &items)
-            
-            guard let certItems = items, securityError == errSecSuccess else {
-                return nil
-            }
-            
-            let certItemsArray: Array = certItems as Array
-            let dict: AnyObject? = certItemsArray.first
-            
-            guard let certEntry: Dictionary = dict as? [String: AnyObject] else {
-                return nil
-            }
-            
-            // grab the identity
-            guard let secIdentity = SecIdentity.conditionallyCast(certEntry["identity"]) else {
-                return nil
-            }
-            
-            // grab the certificate chain
-            var certRef: SecCertificate?
-            SecIdentityCopyCertificate(secIdentity, &certRef)
-            guard let cert = certRef else {
-                return nil
-            }
-            self.certificate = cert
-            self.identity = secIdentity
-        }
-    }
     
-    /// Describes what SecCertificate SecKey should be used to ecnrypt/decrypt a piece of data.
-    public enum CertificateKey: Int, Hashable {
-        case privateKey = 0
-        case publicKey = 1
-    }
-    
-    enum CryptoAction {
-        case encrypt
-        case decrypt
-        
-        var keyToUse: CertificateKey {
-            switch self {
-            case .encrypt:
-                return .publicKey
-            case .decrypt:
-                return .privateKey
-            }
-        }
-    }
     
     // MARK: - API
     
@@ -85,9 +26,19 @@ public struct RSA {
     ///   - bundle: The Certificate that has been used to encrypt the data.
     /// - Returns: The clear data, or nil if it fails.
     public static func decrypt(data: Data,
-                               preferredKey: CertificateKey = .privateKey,
+                               preferredKey: CryptographicKey = .privateKey,
                                with bundle: CryptoBundle) -> Data? {
         return manage(data, for: .decrypt, preferredKey: preferredKey, using: bundle)
+    }
+    
+    /// It decrypts the passed data by using a SecKey (a public key).
+    /// - Parameters:
+    ///   - data: The data that needs to be Decrypted.
+    ///   - key: The public key from the corresponding private key, used to encrypt the string.
+    /// - Returns: The clear data, or nil if it fails.
+    public static func decrypt(data: Data,
+                               with key: SecKey) -> Data? {
+        return newDecrypt(data, decryptionKey: key)
     }
     
     
@@ -98,7 +49,7 @@ public struct RSA {
     ///   - bundle: The Certificate that has been used to encrypt the data.
     /// - Returns: The encrypted data, or nil if it fails.
     public static func encrypt(data: Data,
-                               preferredKey: CertificateKey = .publicKey,
+                               preferredKey: CryptographicKey = .publicKey,
                                with bundle: CryptoBundle) -> Data? {
         return manage(data, for: .encrypt, preferredKey: preferredKey, using: bundle)
     }
@@ -110,7 +61,7 @@ public struct RSA {
     ///   - pair: The KeyPair that was used to Encrypt the data.
     /// - Returns:  The clear data, or nil if it fails.
     public static func decrypt(data: Data,
-                               preferredKey: CertificateKey = .privateKey,
+                               preferredKey: CryptographicKey = .privateKey,
                                with pair: KeyPair) -> (KeyPair?, Data?) {
         return manage(data, pair: pair, preferredKey: preferredKey, for: .decrypt)
     }
@@ -121,12 +72,25 @@ public struct RSA {
     ///   - preferredKey: The preferred SecKey that should be used to encrypt it. By default it uses the `.publicKey`.
     /// - Returns: A touple containing the KeyPair that has been generated and the EncryptedData.
     public static func encrypt(data: Data,
-                               preferredKey: CertificateKey = .publicKey) -> (KeyPair?, Data?) {
+                               preferredKey: CryptographicKey = .publicKey) -> (KeyPair?, Data?) {
         return manage(data, preferredKey: preferredKey, for: .encrypt)
     }
     
+    /// It decrypts the passed data by using a SecKey (a public key).
+    /// - Parameters:
+    ///   - string: The string that needs to be Decrypted.
+    ///   - key: The public key from the corresponding private key, used to encrypt the string.
+    /// - Returns: The clear data, or nil if it fails.
     public static func decrypt(string: String,
-                               preferredKey: CertificateKey = .privateKey,
+                               with key: SecKey) -> Data? {
+        guard let data = Data(base64Encoded: string) else {
+            return nil
+        }
+        return newDecrypt(data, decryptionKey: key)
+    }
+    
+    public static func decrypt(string: String,
+                               preferredKey: CryptographicKey = .privateKey,
                                with bundle: CryptoBundle) -> Data? {
         guard let data = Data(base64Encoded: string) else {
             return nil
@@ -136,7 +100,7 @@ public struct RSA {
     
     
     public static func encrypt(string: String,
-                               preferredKey: CertificateKey = .publicKey,
+                               preferredKey: CryptographicKey = .publicKey,
                                with bundle: CryptoBundle) -> Data? {
         guard let data = string.data(using: .utf8) else {
             return nil
@@ -145,7 +109,7 @@ public struct RSA {
     }
     
     public static func decrypt(string: String,
-                               preferredKey: CertificateKey = .privateKey,
+                               preferredKey: CryptographicKey = .privateKey,
                                with pair: KeyPair) -> (KeyPair?, Data?) {
         guard let data = Data(base64Encoded: string) else {
             return (nil, nil)
@@ -154,7 +118,7 @@ public struct RSA {
     }
     
     public static func encrypt(string: String,
-                               preferredKey: CertificateKey = .publicKey) -> (KeyPair?, Data?) {
+                               preferredKey: CryptographicKey = .publicKey) -> (KeyPair?, Data?) {
         guard let data = string.data(using: .utf8) else {
             return (nil, nil)
         }
@@ -164,11 +128,11 @@ public struct RSA {
 }
 
 // MARK: -Actual decryption/encryption
-private extension RSA {
+private extension SecurityRSA {
     
     static func manage(_ value: Data,
                        pair: KeyPair? = nil,
-                       preferredKey: CertificateKey,
+                       preferredKey: CryptographicKey,
                        for cryptoAction: CryptoAction) -> (KeyPair?, Data?) {
         
         if cryptoAction == .encrypt {
@@ -192,7 +156,7 @@ private extension RSA {
     
     static func manage(_ value: Data,
                        for cryptoAction: CryptoAction,
-                       preferredKey: CertificateKey,
+                       preferredKey: CryptographicKey,
                        using bundle: CryptoBundle) -> Data? {
         var trust: SecTrust?
 
