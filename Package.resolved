@@ -5,9 +5,9 @@
         "package": "BoringSSL-GRPC",
         "repositoryURL": "https://github.com/firebase/boringssl-SwiftPM.git",
         "state": {
-          "branch": null,
-          "revision": "734a8247442fde37df4364c21f6a0085b6a36728",
-          "version": "0.7.2"
+          "branch": "main",
+          "revision": "79db6516894a932d0ddaff3b05b9da1e4f6c4069",
+          "version": null
         }
       }
     ]
