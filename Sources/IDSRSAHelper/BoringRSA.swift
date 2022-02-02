@@ -50,9 +50,20 @@ public final class BoringRSA {
     
     public func privateKey(at url: URL?,
                            perform cryptoAction: CryptoAction,
-                           for string: String) throws -> Data {
-        guard let data = Data(base64Encoded: string) else {
-            throw BoringError.invalidString
+                           for string: String,
+                           stringFormat: StringFormat = .base64) throws -> Data {
+        let data: Data
+        switch stringFormat {
+        case .base64:
+            guard let base64Data = Data(base64Encoded: string) else {
+                throw BoringError.invalidString
+            }
+            data = base64Data
+        case .plain:
+            guard let plainData = string.data(using: .utf8) else {
+                throw BoringError.invalidString
+            }
+            data = plainData
         }
         
         return try privateKey(at: url, perform: cryptoAction, for: data)
@@ -78,10 +89,22 @@ public final class BoringRSA {
     
     public func publicKey(at url: URL?,
                           perform cryptoAction: CryptoAction,
-                          for string: String) throws -> Data {
-        guard let data = Data(base64Encoded: string) else {
-            throw BoringError.invalidString
+                          for string: String,
+                          stringFormat: StringFormat = .base64) throws -> Data {
+        let data: Data
+        switch stringFormat {
+        case .base64:
+            guard let base64Data = Data(base64Encoded: string) else {
+                throw BoringError.invalidString
+            }
+            data = base64Data
+        case .plain:
+            guard let plainData = string.data(using: .utf8) else {
+                throw BoringError.invalidString
+            }
+            data = plainData
         }
+        
         
         return try publicKey(at: url, perform: cryptoAction, for: data)
     }

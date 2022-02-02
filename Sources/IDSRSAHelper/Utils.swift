@@ -27,3 +27,8 @@ public enum CryptoAction {
         }
     }
 }
+
+public enum StringFormat: Int {
+    case base64
+    case plain
+}
