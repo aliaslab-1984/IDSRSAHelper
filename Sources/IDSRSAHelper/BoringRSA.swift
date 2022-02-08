@@ -153,7 +153,7 @@ private extension BoringRSA {
                return fopen(filePtr, "rb")
            }
            
-           guard let publicKey = PEM_read_RSA_PUBKEY(publicKeyPointer, nil, nil, &password) else {
+           guard let publicKey = PEM_read_RSA_PUBKEY(publicKeyPointer, nil, nil, nil) else {
                throw BoringError.lastOpenSSLError()
            }
            

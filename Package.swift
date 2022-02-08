@@ -14,11 +14,11 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(name: "BoringSSL-GRPC", url: "https://github.com/firebase/boringssl-SwiftPM.git", branch: "main")
-//        .package(name: "BoringSSL-GRPC",
-//          url: "https://github.com/firebase/boringssl-SwiftPM.git",
-//          "0.7.1" ..< "0.8.0"
-//        )
+//        .package(name: "BoringSSL-GRPC", url: "https://github.com/firebase/boringssl-SwiftPM.git", branch: "main")
+        .package(name: "BoringSSL-GRPC",
+          url: "https://github.com/firebase/boringssl-SwiftPM.git",
+          "0.7.1" ..< "0.8.0"
+        )
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
