@@ -17,7 +17,7 @@ let package = Package(
 //        .package(name: "BoringSSL-GRPC", url: "https://github.com/firebase/boringssl-SwiftPM.git", branch: "main")
         .package(name: "BoringSSL-GRPC",
           url: "https://github.com/firebase/boringssl-SwiftPM.git",
-          "0.7.1" ..< "0.8.0"
+          "0.8.0" ..< "1.0.0"
         )
     ],
     targets: [
