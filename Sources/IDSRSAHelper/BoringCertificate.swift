@@ -13,29 +13,38 @@ public struct BoringCertificate {
     
     //https://stackoverflow.com/questions/8850524/seccertificateref-how-to-get-the-certificate-information/
     
-    public static func expiryDate(_ certificateData: Data,
-                                  passPhrase: String,
-                                  completion: @escaping (Date?) -> Void) {
+    private let bundle: CryptoBundle
+    
+    init(bundle: CryptoBundle) {
+        self.bundle = bundle
+    }
+    
+    init?(certificateData: Data, passPhrase: String) {
         guard let bundle = CryptoBundle(from: certificateData, password: passPhrase) else {
-            completion(nil)
-            return
+            return nil
         }
         
+        self.bundle = bundle
+    }
+    
+    public func expiryDate(_ completion: @escaping (Date?) -> Void) {
         var certData = SecCertificateCopyData(bundle.certificate) as Data
         
         certData.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>?) -> Void in
-                         //Use `bytes` inside this closure
+            //Use `bytes` inside this closure
             var byte = bytes
-            guard let certificate = d2i_X509(nil, &byte , certificateData.count) else {
+            guard let certificate = d2i_X509(nil, &byte , certData.count) else {
                 completion(nil)
                 return
             }
             completion(Self.getExpiryDate(certificateX509: certificate))
         })
-   }
+    }
+}
+
+private extension BoringCertificate {
     
-    
-    private static func getExpiryDate(certificateX509: OpaquePointer) -> Date? {
+    static func getExpiryDate(certificateX509: OpaquePointer) -> Date? {
         
         guard let certificateExpiryASN1 = X509_get_notAfter(certificateX509) else {
             return nil

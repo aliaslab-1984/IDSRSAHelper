@@ -27,7 +27,12 @@ final class CertificateValidityTest: XCTestCase {
         
         let expectation = expectation(description: "Date")
         
-        BoringCertificate.expiryDate(data, passPhrase: ")?=*Hehy56&%2Ax+") { resultDate in
+        guard let bCertificate = BoringCertificate(certificateData: data, passPhrase: ")?=*Hehy56&%2Ax+") else {
+            XCTFail("Cannot instantiate bundle.")
+            return
+        }
+        
+        bCertificate.expiryDate { resultDate in
             XCTAssertNotNil(resultDate)
             expectation.fulfill()
         }
