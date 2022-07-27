@@ -15,11 +15,11 @@ public struct BoringCertificate {
     
     private let bundle: CryptoBundle
     
-    init(bundle: CryptoBundle) {
+    public init(bundle: CryptoBundle) {
         self.bundle = bundle
     }
     
-    init?(certificateData: Data, passPhrase: String) {
+    public init?(certificateData: Data, passPhrase: String) {
         guard let bundle = CryptoBundle(from: certificateData, password: passPhrase) else {
             return nil
         }
@@ -42,7 +42,25 @@ public struct BoringCertificate {
     }
 }
 
-private extension BoringCertificate {
+public extension SecCertificate {
+    
+    func expiryDate(_ completion: @escaping (Date?) -> Void) {
+        var certData = SecCertificateCopyData(self) as Data
+        
+        certData.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>?) -> Void in
+            //Use `bytes` inside this closure
+            var byte = bytes
+            guard let certificate = d2i_X509(nil, &byte , certData.count) else {
+                completion(nil)
+                return
+            }
+            completion(BoringCertificate.getExpiryDate(certificateX509: certificate))
+        })
+    }
+    
+}
+
+fileprivate extension BoringCertificate {
     
     static func getExpiryDate(certificateX509: OpaquePointer) -> Date? {
         
