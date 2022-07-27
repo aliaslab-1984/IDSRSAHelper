@@ -15,7 +15,7 @@ extension String {
     }
 }
 
-extension Data {
+public extension Data {
     
     var secCertificate: SecCertificate? {
         return SecCertificateCreateWithData(nil, self as NSData)
