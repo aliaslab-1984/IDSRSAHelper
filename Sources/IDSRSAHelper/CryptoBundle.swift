@@ -23,6 +23,11 @@ public struct CryptoBundle {
         let securityError = SecPKCS12Import(p12Data as CFData, certOptions, &items)
         
         guard let certItems = items, securityError == errSecSuccess else {
+            if securityError == errSecAuthFailed {
+                print("Failed to authenticate the PKCS12 import. Wrong password ?")
+            } else {
+                print("Failed PKCS12 import. Other error: \(securityError)")
+            }
             return nil
         }
         
@@ -30,6 +35,7 @@ public struct CryptoBundle {
         let dict: AnyObject? = certItemsArray.first
         
         guard let certEntry: Dictionary = dict as? [String: AnyObject] else {
+            print("No certificates found.")
             return nil
         }
         
