@@ -69,7 +69,7 @@ public struct BoringCertificate {
             var pkey: UnsafeMutablePointer<EVP_PKEY>?
             var caCertificatePointer: OpaquePointer?
             
-            let returnCode = PKCS12_parse(p12Pointer, password.cString(using: .utf8), &pkey, &certificatePointer, &caCertificatePointer)
+            let returnCode = PKCS12_parse(p12, password.cString(using: .utf8), &pkey, &certificatePointer, &caCertificatePointer)
                         
             if let certificatePointer {
                 completion(Self.getExpiryDate(certificateX509: certificatePointer))
