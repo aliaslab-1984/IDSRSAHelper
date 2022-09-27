@@ -27,7 +27,7 @@ public struct BoringCertificate {
         self.bundle = bundle
     }
     
-    static func verifyPassword(pkcs12binary: Data, password: String, matches: @escaping (Bool) -> Void) {
+    public static func verifyPassword(pkcs12binary: Data, password: String, matches: @escaping (Bool) -> Void) {
         pkcs12binary.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>?) -> Void in
             //Use `bytes` inside this closure
             var byte = bytes
