@@ -35,6 +35,11 @@ public struct BoringCertificate {
                 return
             }
             
+            var certificatePointer: OpaquePointer?
+            var caCertificatePointer: OpaquePointer?
+            
+            PKCS12_parse(p12, password.cString(using: .utf8), nil, &certificatePointer, &caCertificatePointer)
+            
             if (PKCS12_verify_mac(p12, nil, 0) != 0){
                 print("PKCS12 has no password.\n")
                 matches(false)
@@ -44,6 +49,30 @@ public struct BoringCertificate {
             } else {
                 print("Password not correct.\n")
                 matches(false)
+            }
+        })
+    }
+    
+    public static func expiryDate(pkcs12binary: Data,
+                                  password: String,
+                                  _ completion: @escaping (Date?) -> Void) {
+        pkcs12binary.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>?) -> Void in
+            //Use `bytes` inside this closure
+            var byte = bytes
+            guard let p12 = d2i_PKCS12(nil, &byte, pkcs12binary.count) else {
+                completion(nil)
+                return
+            }
+            
+            var certificatePointer: OpaquePointer?
+            var caCertificatePointer: OpaquePointer?
+            
+            let returnCode = PKCS12_parse(p12, password.cString(using: .utf8), nil, &certificatePointer, &caCertificatePointer)
+                        
+            if let certificatePointer {
+                completion(Self.getExpiryDate(certificateX509: certificatePointer))
+            } else {
+                completion(nil)
             }
         })
     }
