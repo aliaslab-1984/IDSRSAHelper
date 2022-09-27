@@ -35,11 +35,6 @@ public struct BoringCertificate {
                 return
             }
             
-            var certificatePointer: OpaquePointer?
-            var caCertificatePointer: OpaquePointer?
-            
-            PKCS12_parse(p12, password.cString(using: .utf8), nil, &certificatePointer, &caCertificatePointer)
-            
             if (PKCS12_verify_mac(p12, nil, 0) != 0){
                 print("PKCS12 has no password.\n")
                 matches(false)
