@@ -59,15 +59,17 @@ public struct BoringCertificate {
         pkcs12binary.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>?) -> Void in
             //Use `bytes` inside this closure
             var byte = bytes
-            guard let p12 = d2i_PKCS12(nil, &byte, pkcs12binary.count) else {
+            var p12Pointer: OpaquePointer?
+            guard let p12 = d2i_PKCS12(&p12Pointer, &byte, pkcs12binary.count) else {
                 completion(nil)
                 return
             }
             
             var certificatePointer: OpaquePointer?
+            var pkey: OpaquePointer?
             var caCertificatePointer: OpaquePointer?
             
-            let returnCode = PKCS12_parse(p12, password.cString(using: .utf8), nil, &certificatePointer, &caCertificatePointer)
+            let returnCode = PKCS12_parse(p12Pointer, password.cString(using: .utf8), &pkey, &certificatePointer, &caCertificatePointer)
                         
             if let certificatePointer {
                 completion(Self.getExpiryDate(certificateX509: certificatePointer))
